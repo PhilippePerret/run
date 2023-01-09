@@ -1,0 +1,11 @@
+require 'clir'
+require 'osascript'
+require 'yaml'
+require 'json'
+require 'fileutils'
+
+require_relative 'constants'
+require_relative 'utils/precedences'
+require_relative 'runner'
+require_relative 'config_travail_class'
+require_relative 'step_class'
