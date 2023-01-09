@@ -55,6 +55,25 @@ class Step
     end
   end
 
+  ##
+  # Pour jouer le code transmis
+  # 
+  def code
+    case lang
+    when 'ruby'
+      eval(cmd)
+    when 'applescript'
+      `osascript -e "#{cmd}"`
+    when 'bash'
+      `#{cmd}`
+    when 'python'
+      raise StepError.new("Je ne sais pas encore interpréter du code python.")
+    end
+  rescue Exception => e
+    puts "Problème avec la commande #{cmd.inspect} : #{e.message}".rouge
+    return false
+  end
+
   # --- Predicate Methods ---
 
   def script?
@@ -67,6 +86,8 @@ class Step
   # étape dans le fichier YAML de la configuration.
 
   def type        ; @type     ||= data[:type].to_sym      end
+  def lang        ; @lang     ||= data[:lang]             end
+  def cmd         ; @cmd      ||= data[:cmd]              end
   def app         ; @app      ||= data[:app]              end
   def args        ; @args     ||= JSON.parse(data[:args]) end
   def bounds      ; @bounds   ||= data[:bounds]           end

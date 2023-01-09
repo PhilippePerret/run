@@ -37,9 +37,11 @@ folder: "path/to/existing/folder"
 # ...
 ~~~
 
+---
+
 <a name="config-steps"></a>
 
-### Étapes de la configuration
+## Étapes de la configuration
 
 Tout ce qu'il y a à installer se trouve dans la propriété `setup` du fichier `YAML` de la configuration de travail.
 
@@ -69,14 +71,23 @@ Pour ouvrir un fichier spécifique :
 		
 ~~~
 
-### Jouer un script
+### Jouer un script utilitaires
 
-Ce script doit se trouver dans le dossier `script` de `Run` ou être spécifié par chemin d’accès complet.
+Ce script doit se trouver dans le dossier `scripts` du dossier `Run` ou être spécifié par chemin d’accès complet. Il reçoit toujours les arguments définis par `:args` comme un json-string, donc comme une table avec des clés string. Si `args` n’est pas défini, il appelle le script sans argument.
 
 ~~~yaml
 :setup:
 	- type: script
 		path: mon_script
 		args: '{"key":"value", "key2":"value2",...}' # format JSON
+~~~
+
+### Jouer du code à la volée
+
+~~~yaml
+:setup:
+	- type: code
+		lang: ruby # le langage ('ruby', 'bash', 'python', 'applescript')
+		cmd: "puts('le code ruby à evaluer')"
 ~~~
 
