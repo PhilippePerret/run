@@ -79,12 +79,14 @@ class Script
   def backup_folder
     @backup_folder ||= begin
       bfolder = nil
+      debug? && puts("backup_folder cherché dans #{folder.inspect}")
       Dir["#{folder}/*"].each do |pth|
         if File.directory?(pth) && File.basename(pth).downcase.match?(/backup/)
           bfolder = pth
           break
         end
       end
+      debug? && puts("backup_folder trouvé : #{bfolder.inspect}")
       bfolder
     end
   end

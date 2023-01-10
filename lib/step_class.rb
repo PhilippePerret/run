@@ -32,6 +32,7 @@ class Step
     Runner::Script.new.run(args, wconfig.default_folder)
   rescue Exception => e
     puts "Une erreur est survenue : #{e.message}".rouge
+    puts e.backtrace.join("\n").rouge if debug?
   end
 
   def open
@@ -99,11 +100,12 @@ class Step
 
     def get_real_path
       pth = data[:path]
+      pth_ini = "#{pth}"
       return pth if not(pth.start_with?('.')) && File.exist?(pth)
       pth = File.expand_path(pth, wconfig.default_folder)
       return pth if File.exist?(pth)
       if script?
-        pth = File.join(SCRIPTS_FOLDER, "#{pth}.rb")
+        pth = File.join(SCRIPTS_FOLDER, "#{pth_ini}.rb")
         return pth if File.exist?(pth)
       end
       raise StepError.new("Impossible de trouver le fichier/dossier #{pth.inspect}…")
