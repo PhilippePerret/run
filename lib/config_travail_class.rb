@@ -5,7 +5,7 @@ class ConfigTravail
     def create_new
       puts "Je dois apprendre à créer une nouvelle configuration de travail."
       wconfig_name = Q.ask("Nom de ce travail : ".jaune) || return
-      wconfig_id   = wconfig_name.normalize.downcase.gsub(/ /, '_')
+      wconfig_id   = wconfig_name.normalize.downcase.gsub(/( |::|:)/, '_')
       wconfig_id   = Q.ask("Son identifiant simple unique : ".jaune, **{default: wconfig_id})
       # 
       # On crée son fichier
@@ -37,9 +37,25 @@ class ConfigTravail
   # 
   # Méthode principale pour installer le travail courant
   def setup
-    setup_steps.each do |step_data|
-      Step.new(self, step_data).setup
+    optional_steps = []
+    steps = setup_steps.map do |step_data|
+        Step.new(self, step_data)
+      end.reject do |step|
+        next unless step.optional?
+        optional_steps << step.as_choice
+        true
+      end
+    # 
+    # On propose les étapes optionnelles pour choisir celles qu'on
+    # doit exécuter.
+    # 
+    if optional_steps.count > 0
+      steps += Q.multi_select("Étapes optionnelles :".jaune, optional_steps, **{per_page: optional_steps.count, help:'(cocher celles à exécuter et jouer la touche Entrée)'})
     end
+    # 
+    # On effectue toutes les étapes
+    # 
+    steps.each(&:execute)
   end
 
   # --- Functional Methods ---

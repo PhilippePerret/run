@@ -1,0 +1,20 @@
+---
+:name: Gem PDF::Checker
+:folder: /Users/philippeperret/Programmes/Gems/pdf-checker
+:created_at: 10/01/2023
+:setup:
+  - type: open
+    name: "Ouvrir le dossier du gem dans le Finder"
+    app: Finder
+    path: "."
+    opt: true
+    bounds: [0,0,1200,400]
+  - type: open
+    name: "Ouvrir le dossier test/assets"
+    app: Finder
+    path: "test/assets"
+    opt: true
+    bounds: [0,410,1200,400]
+  - type: open
+    app:  IDE
+    path: "."

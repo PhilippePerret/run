@@ -16,7 +16,7 @@ class Step
   # 
   # Méthode principale qui joue l'étape
   # 
-  def setup
+  def execute
     self.send(type.to_sym)  
   rescue StepError => e
     puts "#{e.message}\nJe dois renoncer à jouer cette étape.".rouge
@@ -36,23 +36,11 @@ class Step
 
   def open
     if File.directory?(path)
-      # Ouverture d'un dossier
-      `open -a Finder "#{path}"`
-      @app = 'Finder'
+      open_folder
     else
-      # Ouverture d'un fichier
-      cmd = app.nil? ? "open '#{path}'" : "open -a '#{app}' '#{path}'"
-      `#{cmd}`
+      open_file
     end
-    if bounds
-      if app.nil?
-        raise StepError.new("Pour pouvoir régler le bounds, il faut préciser l'application.")
-      else
-        bounds[2] = bounds[2] + bounds[0]
-        bounds[3] = bounds[3] + bounds[1]
-        Osascript.set_window_bounds(app, bounds)
-      end
-    end
+    set_bounds if bounds
   end
 
   ##
@@ -80,33 +68,86 @@ class Step
     type == :script
   end
 
+  def optional?
+    opt == true
+  end
+
+  # --- Helpers ---
+
+  def as_choice
+    self.name || raise(StepError.new("Une étape optionnelle doit obligatoirement posséder un :name."))
+    { name: self.name, value: self }    
+  end
+
   # --- Data ---
 
   # Toutes les données qui peuvent être définies dans une
   # étape dans le fichier YAML de la configuration.
 
-  def type        ; @type     ||= data[:type].to_sym      end
-  def lang        ; @lang     ||= data[:lang]             end
-  def cmd         ; @cmd      ||= data[:cmd]              end
-  def app         ; @app      ||= data[:app]              end
-  def args        ; @args     ||= JSON.parse(data[:args]) end
-  def bounds      ; @bounds   ||= data[:bounds]           end
-  def path
-    @path ||= begin
-      pth = data[:path]
-      unless File.exist?(pth)
-        pth = 
-          if script?
-            File.join(SCRIPTS_FOLDER, "#{pth}.rb")
-          else
-            File.join(wconfig.default_folder, pth) 
-          end
-      end
-      File.exist?(pth) || raise(StepError.new("Impossible de trouver le fichier/dossier #{pth.inspect}…"))
-      pth
-    end
-  end
+  def type        ; @type         ||= data[:type].to_sym      end
+  def lang        ; @lang         ||= data[:lang]             end
+  def name        ; @name         ||= data[:name]             end
+  def cmd         ; @cmd          ||= data[:cmd]              end
+  def opt         ; @opt          ||= data[:opt]              end
+  def app         ; @app          ||= data[:app]              end
+  def args        ; @args         ||= JSON.parse(data[:args]) end
+  def bounds      ; @bounds       ||= data[:bounds]           end
+  def description ; @description  ||= data[:description]      end
+  def path        ; @path         ||= get_real_path           end
 
+  private
+
+    def get_real_path
+      pth = data[:path]
+      return pth if not(pth.start_with?('.')) && File.exist?(pth)
+      pth = File.expand_path(pth, wconfig.default_folder)
+      return pth if File.exist?(pth)
+      if script?
+        pth = File.join(SCRIPTS_FOLDER, "#{pth}.rb")
+        return pth if File.exist?(pth)
+      end
+      raise StepError.new("Impossible de trouver le fichier/dossier #{pth.inspect}…")
+    end
+
+    def open_folder
+      case app
+      when 'IDE'
+        open_folder_in_ide
+      when NilClass, 'Finder'
+        `open -a Finder "#{path}"`
+        @app = 'Finder'
+      else
+        raise StepError.new("Je ne sais pas ouvrir un dossier avec l'application #{app.inspect}…")
+      end      
+    end
+
+    def open_folder_in_ide
+      unless defined?(IDE)
+        raise StepError.new("Pour ouvrir un dossier dans un IDE, il faut définir la constante IDE dans les constants.")
+      end
+      unless defined?(IDE_CMD)
+        raise StepError.new("Il faut indiquer la commande à utiliser pour ouvrir dans l'IDE défini, à l'aide de la constante IDE_CMD.")
+      end
+      # On joue la commande pour ouvrir dans l'IDE défini
+      cmd = IDE_CMD % path
+      puts "Command : #{cmd.inspect}".bleu
+      `#{IDE_CMD % path}`
+    end
+
+    def open_file
+      cmd = app.nil? ? "open '#{path}'" : "open -a '#{app}' '#{path}'"
+      `#{cmd}`      
+    end
+
+    def set_bounds
+      if app.nil?
+        raise StepError.new("Pour pouvoir régler le bounds, il faut préciser l'application.")
+      else
+        bounds[2] = bounds[2] + bounds[0]
+        bounds[3] = bounds[3] + bounds[1]
+        Osascript.set_window_bounds(app, bounds)
+      end      
+    end
 end #/class Step
 end #/class ConfigTravail
 end #/module Runner
