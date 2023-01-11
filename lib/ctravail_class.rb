@@ -36,6 +36,7 @@ class ConfigTravail
   # = main =
   # 
   # Méthode principale pour installer le travail courant
+  # 
   def setup
     optional_steps = []
     steps = setup_steps.map do |step_data|

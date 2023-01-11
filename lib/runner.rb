@@ -42,9 +42,12 @@ module Runner
   def self.choose_travail
     choices = Dir["#{TRAVAUX_FOLDER}/*.yaml"].map do |pth|
       {name: YAML.load_file(pth,**{symbolize_names:true})[:name], value: File.basename(pth, File.extname(pth))}
+    end + [{name: "Nouvelle configuration de travail".bleu, value: :new} ]
+
+    precedencize(choices, File.join(folder_tmp,'travaux.precedences')) do |q|
+      q.question "Travail à installer :"
     end
-    choices = choices_with_precedences(choices) + [{name: "Nouvelle configuration de travail".bleu, value: :new} ]
-    Q.select("Travail à installer : ".jaune, choices, **{per_page:choices.count, show_help: false})    
+
   end
 
   def self.pdf_manual_path
@@ -55,8 +58,8 @@ module Runner
     @@md_manual_path ||= File.join(APP_FOLDER,'Manual','Manuel-fr.md')  
   end
 
-  def self.folder # pour les précédences
-    @@folder ||= mkdir(File.join(APP_FOLDER,'tmp'))
+  def self.folder_tmp # pour les précédences
+    @@folder_tmp ||= mkdir(File.join(APP_FOLDER,'tmp'))
   end
 
   # --- Commmande Open ---
@@ -96,8 +99,9 @@ module Runner
   # pour voir les valeurs possibles.
   # 
   def self.choose_what_to_open
-    choices = choices_with_precedences(WHAT_TO_OPEN,'open')
-    Q.select("Ouvrir…".jaune, choices, **{per_page: choices.count})
+    precedencize(WHAT_TO_OPEN, File.join(folder_tmp,'open.precedences')) do |q|
+      q.question "Ouvrir…"
+    end
   end
 
 WHAT_TO_OPEN = [
@@ -105,5 +109,5 @@ WHAT_TO_OPEN = [
   {name:'Le dossier des travaux'      , value: 'travaux'},
   {name:'Le manuel de l’application'  , value: 'manuel'},
   {name:'L’application dans l’IDE'    , value: 'ide'}
-]
+] + [{name:"Renoncer".orange, value: nil}]
 end
