@@ -13,6 +13,6 @@
     description: "Changement de numéro de version du dossier."
   - type: open
     path: "../images"
-    bounds: [0, 310, 1800, 500]
+    bounds: [0, 320, 1800, 680]
     description: "Ouverture du dossier images"
 

@@ -39,11 +39,13 @@ class ConfigTravail
   # 
   def setup
     optional_steps = []
+    open_steps     = [] # étapes d'ouverture
     steps = setup_steps.map do |step_data|
         Step.new(self, step_data)
       end.reject do |step|
-        next unless step.optional?
-        optional_steps << step.as_choice
+        next unless step.optional? || step.opener?
+        optional_steps << step.as_choice if step.optional?
+        open_steps     << step if step.opener?
         true
       end
     # 
@@ -54,9 +56,14 @@ class ConfigTravail
       steps += Q.multi_select("Étapes optionnelles :".jaune, optional_steps, **{per_page: optional_steps.count, help:'(cocher celles à exécuter et jouer la touche Entrée)'})
     end
     # 
-    # On effectue toutes les étapes
+    # On effectue toutes les étapes hors ouvertures
     # 
     steps.each(&:execute)
+    # 
+    # On effecture les étapes d'ouverture en dernier
+    # 
+    open_steps.each(&:execute)
+
   end
 
   # --- Functional Methods ---

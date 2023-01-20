@@ -73,6 +73,11 @@ class Step
     opt == true
   end
 
+  # @return [Boolean] true si c'est une étape d'ouverture
+  def opener?
+    type == :open
+  end
+
   # --- Helpers ---
 
   def as_choice
