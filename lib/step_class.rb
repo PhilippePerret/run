@@ -17,9 +17,12 @@ class Step
   # Méthode principale qui joue l'étape
   # 
   def execute
+    puts "-> Exécution de #{name||id}".jaune
     self.send(type.to_sym)  
   rescue StepError => e
     puts "#{e.message}\nJe dois renoncer à jouer cette étape.".rouge
+  ensure
+    puts "<- /fin de #{name||id}".jaune
   end
 
   # --- Step Methods ---
