@@ -17,12 +17,14 @@ class Step
   # Méthode principale qui joue l'étape
   # 
   def execute
-    puts "-> Exécution de #{name||id}".jaune
+    debug? && puts("-> Exécution de : #{aname}".jaune)
     self.send(type.to_sym)  
+  rescue InterruptionVolontaire => e
+    raise e
   rescue StepError => e
     puts "#{e.message}\nJe dois renoncer à jouer cette étape.".rouge
   ensure
-    puts "<- /fin de #{name||id}".jaune
+    debug? && puts("<- /fin de : #{aname}".jaune)
   end
 
   # --- Step Methods ---
@@ -33,6 +35,8 @@ class Step
   def script
     load path
     Runner::Script.new.run(args, wconfig.default_folder)
+  rescue TTY::Reader::InputInterrupt
+    raise InterruptionVolontaire.new
   rescue Exception => e
     puts "Une erreur est survenue : #{e.message}".rouge
     puts e.backtrace.join("\n").rouge if debug?
@@ -88,11 +92,20 @@ class Step
     { name: self.name, value: self }    
   end
 
+  # --- Volatile Data ---
+
+  # @return [String] Un nom, toujours, désignant l'étape, au pire
+  # l'objet-id
+  def aname
+    @aname ||= name || id || description || "step ##{object_id}"
+  end
+
   # --- Data ---
 
   # Toutes les données qui peuvent être définies dans une
   # étape dans le fichier YAML de la configuration.
 
+  def id          ; @id           ||= data[:id]               end
   def type        ; @type         ||= data[:type].to_sym      end
   def lang        ; @lang         ||= data[:lang]             end
   def name        ; @name         ||= data[:name]             end

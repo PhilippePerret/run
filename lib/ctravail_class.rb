@@ -64,6 +64,8 @@ class ConfigTravail
     # 
     open_steps.each(&:execute)
 
+  rescue InterruptionVolontaire => e
+    raise e
   end
 
   # --- Functional Methods ---
