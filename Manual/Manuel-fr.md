@@ -6,7 +6,19 @@ La commande `run` permet d'installer sur le bureau, dans les applications une co
 
 [TOC]
 
+## Installation d’une configuration de travail définie
 
+Une fois la [création d’une nouvelle configuration](#define-configuration) définie, on peut la lancer, soit en jouant la commande `run` puis en la choisissant dans le menu s’affichant, soit en lançant la commande `run` avec l’identifiant de cette configuration
+
+```
+run id-configuration
+```
+
+> Cf. à quoi correspond l’[identifiant de la configuration de travail](#id-configuration)
+
+---
+
+<a name="define-configuration"></a>
 
 ## Création de la nouvelle configuration de travail
 
@@ -188,3 +200,36 @@ Ce script doit se trouver dans le dossier `scripts` du dossier `Run` ou être sp
 		cmd: "puts('le code ruby à evaluer')"
 ~~~
 
+
+
+---
+
+## Lexique
+
+<a name="id-configuration"></a>
+
+### Identifiant de configuration
+
+**L’identifiant de la configuration** (souvent symbolisé par `<id-configuraion>`) correspond à l’affixe du fichier qui la définit dans le dossier des travaux, donc le nom sans l’extension.
+
+<a name="travaux-folder"></a>
+
+### Dossier des travaux
+
+Dossier contenant la fiche de la définition précise de chaque configuration de travail. On le trouve dans le dossier de l’application ***Run***, à la racine, avec le nom `_travaux_`.
+
+La commande `run open`, en choisissant l’item “Ouvrir le dossier des travaux”, permet de l’ouvrir dans l’éditeur
+
+---
+
+## Annexe
+
+### Utilisation de Run avec MyTaches
+
+On peut lancer une configuration de travail depuis une tâche de l’application `MyTaches`. Il suffit de définir dans la tâche le code à exécuter et de mettre la valeur de lancement d’une configuration :
+
+```
+code à exécuter : 'run <id-configuration>'
+```
+
+> Cf. à quoi correspond l’[identifiant de la configuration de travail](#id-configuration)
