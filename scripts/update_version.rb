@@ -37,9 +37,9 @@ class Script
         # On demande la nouvelle version
         _, vm, vs, vp = filename.match(filename_format).to_a
         new_numbers = Q.select("Quel nouveau numéro de version pour #{filename} ?".jaune, **{show_help:false}) do |q|
-          q.choice "#{vm.to_i+1}.0.0"
-          q.choice "#{vm}.#{vs.to_i + 1}.0"
           q.choice "#{vm}.#{vs}.#{vp.to_i + 1}"
+          q.choice "#{vm}.#{vs.to_i + 1}.0"
+          q.choice "#{vm.to_i+1}.0.0"
           q.choice "Ne pas la modifier", nil
           q.per_page 4
         end
@@ -69,7 +69,6 @@ class Script
 
   def backup_and_upgrade(pth, filename, new_version)
     old_version = File.basename(pth)
-    puts "Je dois apprendre à upgrader #{filename.inspect} avec #{new_version}".jaune
     methode = File.directory?(pth) ? :cp_r : :cp
     FileUtils.send(methode, pth, "#{backup_folder}/")
     FileUtils.mv(pth, File.join(File.dirname(pth),new_version))

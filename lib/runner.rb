@@ -7,15 +7,17 @@ module Runner
 
   def self.run
     clear
+    # 
+    # On prend l'argument juste après la commande 'run', qui peut
+    # être soit une sous-commande, soit un identifiant de travail
+    # à lancer (par exemple )
     command = ARGV.first
-    # command = CLI.components.first # POURQUOI EST-CE QUE ÇA NE FONCTIONNE PAS ????
-    # puts "CLI.components = #{CLI.components.inspect}"
     if help?
       open_manual
     elsif command == 'open'
       open_something(ARGV[1])
     else
-      puts "(`run -h' pour ouvrir le manuel)".gris
+      puts "(`run -h' pour ouvrir le manuel de Run)".gris
       @@travail = command
       while travail_invalid?
         @@travail = choose_travail || return
