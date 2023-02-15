@@ -69,12 +69,30 @@ class Script
 
   def backup_and_upgrade(pth, filename, new_version)
     old_version = File.basename(pth)
+    # 
+    # Le nouveau nom, en fonction du fait qu'il y a une extension
+    # ou non
+    # 
+    dst = File.join(File.dirname(pth),"#{new_version}#{File.extname(pth) unless File.directory?(pth)}")
+    # 
+    # La méthode à employer si c'est un dossier ou si c'est un 
+    # fichier.
+    # 
     methode = File.directory?(pth) ? :cp_r : :cp
+    # 
+    # On fait la copie de l'élément dans le dossier backup
+    # 
     FileUtils.send(methode, pth, "#{backup_folder}/")
-    FileUtils.mv(pth, File.join(File.dirname(pth),new_version))
-    puts "Backup de #{old_version.inspect} effectuée et nouvelle version #{new_version.inspect} définie.".vert
+    # 
+    # On change le nom
+    # 
+    FileUtils.mv(pth, dst)
+    puts "Backup de #{old_version.inspect} effectuée et nouvelle version #{File.basename(dst).inspect} définie.".vert
   end
 
+  # @return [String] Le path du chemin vers le dossier des backups
+  # (attention : le dossier des backups du dossier courant, pas 
+  #  celui de l'application 'backup' qui surveille un fichier)
   def backup_folder
     @backup_folder ||= begin
       bfolder = nil
