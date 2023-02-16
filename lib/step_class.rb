@@ -27,6 +27,7 @@ class Step
     debug? && puts("<- /fin de : #{aname}".jaune)
   end
 
+
   # --- Step Methods ---
 
   ##
@@ -70,6 +71,22 @@ class Step
     return false
   end
 
+  # Une URL à rejoindre
+  def url
+    require 'cgi'
+    puts "Je dois apprendre à rejoindre une URL".jaune
+    uri = path.dup
+    if args
+      querystring = args.map{|k,v|"#{k}=#{CGI.escape(v)}"}.join('&')
+      uri = "#{uri}?#{querystring}"
+    end
+    if app
+      `open -a "#{app}" #{uri}`
+    else
+      `open #{uri}`
+    end
+  end
+
   # --- Predicate Methods ---
 
   def script?
@@ -83,6 +100,10 @@ class Step
   # @return [Boolean] true si c'est une étape d'ouverture
   def opener?
     type == :open
+  end
+
+  def url?
+    type == :url
   end
 
   # --- Helpers ---
@@ -112,15 +133,23 @@ class Step
   def cmd         ; @cmd          ||= data[:cmd]              end
   def opt         ; @opt          ||= data[:opt]              end
   def app         ; @app          ||= data[:app]              end
-  def args        ; @args         ||= JSON.parse(data[:args]) end
   def bounds      ; @bounds       ||= data[:bounds]           end
   def description ; @description  ||= data[:description]      end
+  def args
+    @args ||= begin
+      case data[:args]
+      when String then JSON.parse(data[:args]) 
+      else data[:args]
+      end
+    end
+  end
   def path        ; @path         ||= get_real_path           end
 
   private
 
     def get_real_path
       pth = data[:path]
+      return pth if url?
       pth_ini = "#{pth}"
       return pth if not(pth.start_with?('.')) && File.exist?(pth)
       pth = File.expand_path(pth, wconfig.default_folder)

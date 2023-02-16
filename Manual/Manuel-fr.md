@@ -178,7 +178,18 @@ setup:
 		path: path/to/folder
 ~~~
 
+#### Rejoindre une URL
 
+~~~yaml
+setup:
+	- type: url
+		path: https://path/to/site
+		# Valeurs optionnelles
+		name: "Nom précis de l'étape"
+		app: Firefox # ou le navigateur par défaut
+		args: {key: value, key2: value, ...} # query string
+		opt: true # pour en faire une étape optionnelle
+~~~
 
 #### Jouer un script utilitaires
 
