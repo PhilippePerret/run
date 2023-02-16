@@ -46,7 +46,17 @@ On peut aussi lancer cette configuration directement grâce à son [identifiant 
 > run nom-fichier-sans-extension
 ~~~
 
+### Rejouer seulement certaines étapes d’une configuration de travail
 
+Parfois, on peut avoir à ne relancer ou à ne lancer que certaines étapes d’une configuration de travail (par exemple un fichier de notes). Dans ce cas, il suffit de lancer la commande `run` avec l’option `-c/--choose`. Par exemple :
+
+~~~bash
+> run ma-config -c
+~~~
+
+Avec la commande ci-dessous, ***Run*** passera en revue toutes les étapes en demandant s’il faut les jouer.
+
+> Noter que la touche `Return` permet alors de passer une étape et que pour en jouer une autre, il faut explicitement entrer `y` ou `yes`.
 
 ---
 

@@ -3,7 +3,6 @@ class ConfigTravail
   class << self
 
     def create_new
-      puts "Je dois apprendre à créer une nouvelle configuration de travail."
       wconfig_name = Q.ask("Nom de ce travail : ".jaune) || return
       wconfig_id   = wconfig_name.normalize.downcase.gsub(/( |::|:)/, '_')
       wconfig_id   = Q.ask("Son identifiant simple unique : ".jaune, **{default: wconfig_id})
@@ -37,32 +36,56 @@ class ConfigTravail
   # 
   # Méthode principale pour installer le travail courant
   # 
+  # @note
+  #   Avec l'option -c/--choose, on n'ouvre que les étapes voulues
+  # 
   def setup
     optional_steps = []
     open_steps     = [] # étapes d'ouverture
     steps = setup_steps.map do |step_data|
         Step.new(self, step_data)
       end.reject do |step|
+        # 
+        # En mode "choisir les étapes à jouer", on prend toutes les
+        # étapes
+        # 
+        next if mode_choose?
+        # 
+        # Sinon, on ne garde que certaines étapes
+        # 
         next unless step.optional? || step.opener?
         optional_steps << step.as_choice if step.optional?
         open_steps     << step if step.opener?
         true
       end
-    # 
-    # On propose les étapes optionnelles pour choisir celles qu'on
-    # doit exécuter.
-    # 
-    if optional_steps.count > 0
-      steps += Q.multi_select("Étapes optionnelles :".jaune, optional_steps, **{per_page: optional_steps.count, help:'(cocher celles à exécuter et jouer la touche Entrée)'})
+    if mode_choose?
+      # 
+      # En mode pour choisir les étapes à jouer (-c/-choose)
+      #
+      steps.reject do |step|
+        Q.no?("Dois-je jouer : #{step.aname} ? ('Y' pour oui)".jaune)
+      end.each(&:execute)
+    else
+      #
+      # En mode normal
+      # 
+      # 
+      # On propose les étapes optionnelles pour choisir celles qu'on
+      # doit exécuter.
+      # 
+      if optional_steps.count > 0
+        steps += Q.multi_select("Étapes optionnelles :".jaune, optional_steps, **{per_page: optional_steps.count, help:'(cocher celles à exécuter et jouer la touche Entrée)'})
+      end
+      # 
+      # On effectue toutes les étapes hors ouvertures
+      # 
+      steps.each(&:execute)
+      # 
+      # On effecture les étapes d'ouverture en dernier
+      # 
+      open_steps.each(&:execute)
+    
     end
-    # 
-    # On effectue toutes les étapes hors ouvertures
-    # 
-    steps.each(&:execute)
-    # 
-    # On effecture les étapes d'ouverture en dernier
-    # 
-    open_steps.each(&:execute)
 
   rescue InterruptionVolontaire => e
     raise e
@@ -82,6 +105,12 @@ class ConfigTravail
 
   def save
     File.write(path, data)
+  end
+
+  # - Predicate Methods -
+
+  def mode_choose? 
+    :TRUE == @enmodechoose ||= true_or_false(CLI.option(:choose))
   end
 
   # --- Data ---
