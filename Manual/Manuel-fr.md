@@ -32,6 +32,24 @@ Jouer dans un Terminal (n’importe où) :
 
 ---
 
+<a name="run-travail"></a>
+
+## Lancer une configuration de travail
+
+Pour lancer une configuration de travail, i.e. ouvrir les dossiers, lancer un fichier, rejoindre une URL, etc. il suffit de jouer la commande **`run`** en console et de choisir la configuration de travail voulue.
+
+> Note : la dernière configuration de travail est toujours au-dessus.
+
+On peut aussi lancer cette configuration directement grâce à son [identifiant de configuration](#id-configuration). Par exemple :
+
+~~~bash
+> run nom-fichier-sans-extension
+~~~
+
+
+
+---
+
 ## Configuration d’un travail
 
 ### Nom humain de la configuration de travail
@@ -221,7 +239,7 @@ Ce script doit se trouver dans le dossier `scripts` du dossier `Run` ou être sp
 
 ### Identifiant de configuration
 
-**L’identifiant de la configuration** (souvent symbolisé par `<id-configuraion>`) correspond à l’affixe du fichier qui la définit dans le dossier des travaux, donc le nom sans l’extension.
+**L’identifiant de la configuration** (souvent symbolisé par `<id-configuraion>`) correspond à l’affixe du fichier qui la définit dans le dossier des travaux, donc **le nom du fichier du travail sans l’extension**.
 
 <a name="travaux-folder"></a>
 
