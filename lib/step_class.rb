@@ -181,7 +181,7 @@ class Step
       end
       # On joue la commande pour ouvrir dans l'IDE défini
       cmd = IDE_CMD % path
-      puts "Command : #{cmd.inspect}".bleu
+      puts "Command : #{cmd.inspect}".bleu if debug?
       `#{IDE_CMD % path}`
     end
 
