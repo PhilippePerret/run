@@ -74,7 +74,6 @@ class Step
   # Une URL à rejoindre
   def url
     require 'cgi'
-    puts "Je dois apprendre à rejoindre une URL".jaune
     uri = path.dup
     if args
       querystring = args.map{|k,v|"#{k}=#{CGI.escape(v)}"}.join('&')
