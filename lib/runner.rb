@@ -18,7 +18,8 @@ module Runner
       open_something(ARGV[1])
     else
       puts "(`run -h' pour ouvrir le manuel de Run)".gris
-      @@travail = command
+      @@travail = analyse_commande(command)
+      return if @@travail === false # renoncement
       while travail_invalid?
         @@travail = choose_travail || return
         if @@travail == :new
@@ -30,6 +31,7 @@ module Runner
       # Installer ce travail
       # 
       @@travail.is_a?(ConfigTravail) || @@travail = ConfigTravail.new(@@travail)
+      puts "Ouverture de #{@@travail.name.inspect}…".bleu
       @@travail.setup
     end
   end
@@ -49,7 +51,6 @@ module Runner
     precedencize(choices, File.join(folder_tmp,'travaux.precedences')) do |q|
       q.question "Travail à installer :"
     end
-
   end
 
   def self.pdf_manual_path
@@ -105,6 +106,75 @@ module Runner
       q.question "Ouvrir…"
     end
   end
+
+
+  private
+
+    # Méthode qui va prendre la command donnée par l'utilisateur 
+    # après la commande principale 'run' et voir si ça n'est pas
+    # l'identifiant ou le titre d'une commande connue.
+    # Si plusieurs commandes ont été trouvées, on les propose, si
+    # une seule convient, on la prend.
+    # 
+    # @note : la recherche se fait aussi bien sur les noms que sur 
+    # les identifiants, en cherchant d'abord dans les identifiants
+    # 
+    # @return [ConfigTravail] La configuration de travail trouvée,
+    # choisie, ou nil
+    # 
+    def self.analyse_commande(cmd_ini)
+      cmd_ini || return
+      cmd = cmd_ini.dup
+      # 
+      # Si c'est l'identifiant exact
+      return ConfigTravail.new(cmd) if File.exist?(File.join(TRAVAUX_FOLDER,"#{cmd}.yaml"))
+      # 
+      # On compare aux identifiants existants
+      # 
+      regcmd = /#{Regexp.escape(cmd)}/i
+      goods = Dir["#{TRAVAUX_FOLDER}/*.yaml"].select do |pth|
+        File.affix(pth).match?(regcmd)
+      end
+      
+      if goods.empty?
+        # 
+        # Ce n'est pas possible que l'utilisateur ait rentré
+        # n'importe quoi… (hum hum)… On va rechercher dans les noms
+        # des installations
+        # 
+        goods = Dir["#{TRAVAUX_FOLDER}/*.yaml"].select do |pth| 
+          wname = YAML.load_file(pth,**{symbolize_names:true})[:name]
+          wname.match?(regcmd)
+        end
+      end
+
+      # 
+      # On teste le résultat trouvé
+      #   1) Si aucun, on s'en retourne avec nil
+      #   2) Si un seul, on le retourne
+      #   3) Si plusieurs, on demande à choisir
+      # 
+      if goods.empty?
+        puts "Aucun identifiant ni aucun nom ne contient #{cmd_ini.inspect}…".rouge
+        return nil
+      elsif goods.count == 1
+        return ConfigTravail.new(File.affix(goods.first))
+      else
+        # 
+        # Plusieurs candidats possibles, il faut proposer à 
+        # l'utilisateur de choisir celui qui convient
+        # 
+        goods = goods.map {|pth| ConfigTravail.new(File.affix(pth))}      
+      end
+
+
+      # 
+      # On choisit parmi les choix possible
+      choices = goods.map { |w| {name:w.name, value: w} }
+      choices << {name: "Choisir un autre travail".bleu, value: nil}
+      choices << {name: "Renoncer".orange, value: false}
+      Q.select("Quel travail ouvrir : ".jaune, choices, **{per_page:choices.count, show_help:false})
+    end
 
 WHAT_TO_OPEN = [
   {name:"Le dossier des scripts"      , value: 'scripts'},
