@@ -8,7 +8,7 @@
     bounds: [0, 0, 1800, 300]
     description: "Ouverture du dossier principal"
   - type: script
-    path: 'update_version'
+    path: 'upgrade_version'
     args: '{"format": "v([0-9]+)\.([0-9]+)\.([0-9]+)"}'
     description: "Changement de numéro de version du dossier."
   - type: open
