@@ -107,6 +107,16 @@ class ConfigTravail
     File.write(path, data)
   end
 
+  # Pour archiver le travail
+  def archive
+    FileUtils.mv(path, archive_path)
+  end
+
+  # Pour désarchiver un travail
+  def unarchive
+    FileUtils.mv(archive_path, path)
+  end
+
   # - Predicate Methods -
 
   def mode_choose? 
@@ -125,6 +135,10 @@ class ConfigTravail
 
   def path
     @path ||= File.join(TRAVAUX_FOLDER,"#{id}.yaml")
+  end
+
+  def archive_path
+    @archive_path ||= File.join(ARCHIVES_FOLDER,"#{id}.yaml")
   end
 
 end #/class ConfigTravail

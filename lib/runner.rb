@@ -13,44 +13,74 @@ module Runner
     # à lancer (par exemple )
     command = ARGV.first
     if help?
-      open_manual
-    elsif command == 'open'
-      open_something(ARGV[1])
-    else
-      puts "(`run -h' pour ouvrir le manuel de Run)".gris
-      @@travail = analyse_commande(command)
-      return if @@travail === false # renoncement
-      while travail_invalid?
-        @@travail = choose_travail || return
-        if @@travail == :new
-          @@travail = ConfigTravail.create_new
-          return
-        end
+      if command == 'help'
+        open_manual
+      else
+        require_relative 'help'
+        display_help
       end
-      # 
-      # Installer ce travail
-      # 
-      @@travail.is_a?(ConfigTravail) || @@travail = ConfigTravail.new(@@travail)
-      puts "Ouverture de #{@@travail.name.inspect}…".bleu
-      @@travail.setup
+    else
+      case command
+      when 'archive', 'archiver'
+        require_relative 'archive'
+        ensure_travail(ARGV[1]) || return
+        archiver
+      when 'unarchive', 'desarchive', 'desarchiver', 'désarchiver'
+        require_relative 'archive'
+        desarchiver
+      when 'open', 'ouvre'              
+        open_something(ARGV[1])
+      else
+        puts "(`run -h' pour ouvrir le manuel de Run)".gris
+        ensure_travail(command) || return
+        # 
+        # Installer ce travail
+        # 
+        puts "Ouverture de #{@@travail.name.inspect}…".bleu
+        @@travail.setup
+      end
     end
   end
 
 
-  # @return [Boolean] si le travail (@@travail) est valide
-  def self.travail_invalid?
-    not(@@travail.is_a?(ConfigTravail)) &&
-    !File.exist?(File.join(TRAVAUX_FOLDER, "#{@@travail}.yaml"))
+  def self.ensure_travail(command)
+    @@travail = analyse_commande(command)
+    return if @@travail === false # renoncement
+    memo_travail_for_precedences if travail_valid?
+    until travail_valid?
+      @@travail = choose_travail || return
+      if @@travail == :new
+        @@travail = ConfigTravail.create_new
+        return false
+      end
+    end
+    @@travail.is_a?(ConfigTravail) || @@travail = ConfigTravail.new(@@travail)
   end
+
+  # @return true si le travail @@travail est un travail valide
+  def self.travail_valid?
+    @@travail.is_a?(ConfigTravail) || File.exist?(File.join(TRAVAUX_FOLDER, "#{@@travail}.yaml")) || File.exist?(File.join(ARCHIVES_FOLDER, "#{@@travail}.yaml"))
+  end
+
+  # # @return [Boolean] si le travail (@@travail) est valide
+  # def self.travail_invalid?
+  #   # not(@@travail.is_a?(ConfigTravail)) || # c'était && avant…
+  #   not(@@travail.is_a?(ConfigTravail)) && # bizarre, quand même… mais ça ne marche pas si c'est '||'
+  #   !File.exist?(File.join(TRAVAUX_FOLDER, "#{@@travail}.yaml"))
+  # end
 
   def self.choose_travail
     choices = Dir["#{TRAVAUX_FOLDER}/*.yaml"].map do |pth|
       {name: YAML.load_file(pth,**{symbolize_names:true})[:name], value: File.basename(pth, File.extname(pth))}
     end + [{name: "Nouvelle configuration de travail".bleu, value: :new} ]
 
-    precedencize(choices, File.join(folder_tmp,'travaux.precedences')) do |q|
-      q.question "Travail à installer :"
+    precedencize(choices, precedences_file) do |q|
+      q.question "Choisissez le travail :"
     end
+  end
+
+  def self.precedences_file
+    @@precedences_file ||= File.join(folder_tmp,'travaux.precedences')
   end
 
   def self.pdf_manual_path
@@ -109,6 +139,13 @@ module Runner
 
 
   private
+
+    # Lorsqu'on donne à la commande le nom du travail à ouvrir, on
+    # ne passe pas par sa mémorisation pour les précédences. Cette
+    # méthode permet de palier ce problème.
+    def self.memo_travail_for_precedences
+      set_precedence(@@travail.id, precedences_file)
+    end
 
     # Méthode qui va prendre la command donnée par l'utilisateur 
     # après la commande principale 'run' et voir si ça n'est pas

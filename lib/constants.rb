@@ -4,8 +4,9 @@ APP_FOLDER = File.dirname(__dir__)
 
 class InterruptionVolontaire < StandardError; end
 
-TRAVAUX_FOLDER = mkdir(File.join(APP_FOLDER,'_travaux_'))
-SCRIPTS_FOLDER = mkdir(File.join(APP_FOLDER,'scripts'))
+TRAVAUX_FOLDER  = mkdir(File.join(APP_FOLDER,'_travaux_'))
+ARCHIVES_FOLDER = mkdir(File.join(TRAVAUX_FOLDER,'archives'))
+SCRIPTS_FOLDER  = mkdir(File.join(APP_FOLDER,'scripts'))
 
 CHOIX_RENONCER = {name:"Renoncer".orange, value: nil}
 
