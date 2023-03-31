@@ -7,9 +7,18 @@ class Step
 
   attr_reader :wconfig
   attr_reader :data
+
+  # Pour décider de la jouer ou pas, quand c'est une étape 
+  # optionnelle
+  attr_accessor :runit
+
   def initialize(wconfig, step_data)
     @wconfig  = wconfig
     @data     = step_data
+  end
+
+  def run_it?
+    @runit == true
   end
 
   # = main =
@@ -17,6 +26,7 @@ class Step
   # Méthode principale qui joue l'étape
   # 
   def execute
+    return if optional? && not(run_it?)
     debug? && puts("-> Exécution de : #{aname}".jaune)
     self.send(type.to_sym)  
   rescue InterruptionVolontaire => e

@@ -54,13 +54,15 @@ class ConfigTravail
         # Sinon, on ne garde que certaines étapes
         # 
         next unless step.optional? || step.opener?
-        optional_steps << step.as_choice if step.optional?
+        optional_steps << step if step.optional?
         open_steps     << step if step.opener?
         true
       end
     if mode_choose?
       # 
       # En mode pour choisir les étapes à jouer (-c/-choose)
+      # (dans ce mode, toutes les étapes, même les étapes non 
+      #  optionnelles, peuvent être passées)
       #
       steps.reject do |step|
         Q.no?("Dois-je jouer : #{step.aname} ? ('Y' pour oui)".jaune)
@@ -74,7 +76,13 @@ class ConfigTravail
       # doit exécuter.
       # 
       if optional_steps.count > 0
-        steps += Q.multi_select("Étapes optionnelles :".jaune, optional_steps, **{per_page: optional_steps.count, help:'(cocher celles à exécuter et jouer la touche Entrée)'})
+        choices = optional_steps.map do |step| 
+          step.runit = false 
+          step.as_choice
+        end
+        optional_steps_choosen = Q.multi_select("Étapes optionnelles :".jaune, choices, **{per_page: optional_steps.count, help:'(cocher celles à exécuter et jouer la touche Entrée)'})
+        optional_steps_choosen.each {|step| step.runit = true}
+        steps += optional_steps_choosen
       end
       # 
       # On effectue toutes les étapes hors ouvertures
