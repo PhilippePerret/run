@@ -43,6 +43,9 @@ class Step
     puts e.backtrace.join("\n").rouge if debug?
   end
 
+  ##
+  # Un fichier/dossier à ouvrir
+  # 
   def open
     if File.directory?(path)
       open_folder
@@ -134,24 +137,36 @@ class Step
   def app         ; @app          ||= data[:app]              end
   def bounds      ; @bounds       ||= data[:bounds]           end
   def description ; @description  ||= data[:description]      end
-  def args
-    @args ||= begin
-      case data[:args]
-      when String then JSON.parse(data[:args]) 
-      else data[:args]
-      end
-    end
-  end
+  def args        ; @args         ||= Args.new(data[:args])   end
   def path        ; @path         ||= get_real_path           end
 
   private
 
+    ##
+    # Le path fourni peut avoir plusieurs formes, il faut l'analyser
+    #   - chemin absolu => rien à faire
+    #   - chemin relatif => le calculer par rapport au dossier
+    #   - regex => le calculer
     def get_real_path
       pth = data[:path]
       return pth if url?
       pth_ini = "#{pth}"
+      if pth_ini.start_with?('/')
+        # 
+        # <= Le path est une expression régulière
+        # => Il faut trouver l'élément dans le dossier
+        # 
+        pth_ini = eval(pth_ini)
+        regpath = Regexp.new("^#{wconfig.default_folder}")
+        Dir["#{wconfig.default_folder}/**/*"].each do |fpath|
+          relpath = fpath.sub(regpath,'')
+          return fpath if relpath.match?(pth_ini)
+        end
+        raise StepError.new("Impossible de trouver le fichier/dossier avec #{pth_ini.inspect}.")
+      end
       return pth if not(pth.start_with?('.')) && File.exist?(pth)
-      pth = File.expand_path(pth, wconfig.default_folder)
+      # pth = File.expand_path(pth, wconfig.default_folder)
+      pth = File.expand_path(File.join(wconfig.default_folder, pth))
       return pth if File.exist?(pth)
       if script?
         pth = File.join(SCRIPTS_FOLDER, "#{pth_ini}.rb")

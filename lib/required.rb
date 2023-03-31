@@ -7,7 +7,8 @@ require 'precedences'
 
 require_relative 'constants'
 require_relative 'runner'
-require_relative 'ctravail_class'
-require_relative 'step_class'
+require_relative 'ctravail'
+require_relative 'step'
+require_relative 'args'
 
 CLI.set_options_table({c: :choose})

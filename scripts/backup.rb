@@ -10,6 +10,8 @@ class Script
 
 attr_reader :folder
 
+  # @param [Runner::Args] args Instance des arguments
+  # @param [String] folder Chemin d'accès au dossier principal
   def run(args, folder)
     @folder = folder
   
@@ -17,19 +19,21 @@ attr_reader :folder
     # On doit trouver le fichier à suivre, entendu que très souvent
     # il porte un nom variable.
     # 
-    src = File.join(folder, args['file'])
-    unless File.exist?(src)
-      regpath = /#{args['file']}$/
-      Dir["#{File.dirname(src)}/*"].each do |pth|
-        src = pth and break if pth.match?(regpath)
+    src =
+      if args.file.is_a?(Regexp)
+        get_file_from_regexp(args.file, folder)
+      elsif File.exist?(args.file)
+        args.file
+      elsif File.exists?(File.join(folder, args.file))
+        File.join(folder, args.file)
       end
-    end
+
     # 
     # Vérification ultime
     # 
     if src.nil? || not(File.exist?(src))
       puts "ERREUR : Le fichier à suivre (backup) est introuvable, je dois renoncer…".rouge
-      puts "Note : il  est défini par #{args['file'].inspect} dans le dossier #{folder.inspect}".rouge
+      puts "Note : il  est défini par #{args.file.inspect} dans le dossier #{folder.inspect}".rouge
       return
     end
 
@@ -68,6 +72,13 @@ attr_reader :folder
     run_in_terminal({key:'n', modifiers:[:command]}, **{delay:0.6})
     run_fast_in_terminal(fld << :RETURN)
     run_in_terminal("backup \"#{File.basename(src)}\"\n")
+  end
+
+  def get_file_from_regexp(regpath, folder)
+    Dir["#{folder}/**/*"].each do |pth|
+      return pth if pth.match?(regpath)
+    end
+    return nil
   end
 
   def run_in_terminal(keys, **options)

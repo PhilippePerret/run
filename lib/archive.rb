@@ -1,8 +1,9 @@
 module Runner
 
   def self.archiver
+    msg_fin = "Travail “#{@@travail.name}” archivé."
     @@travail.archive
-    puts "Travail “#{@@travail.name}” archivé.".vert
+    puts msg_fin.vert
   end
 
   def self.desarchiver

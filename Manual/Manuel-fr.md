@@ -1,6 +1,6 @@
 # Manuel français du runner
 
-La commande `run` permet d'installer sur le bureau, dans les applications une configuration de travail quelconque.
+La commande `run` permet d'installer une configuration de travail quelconque (ouverture de dossier/fichier, incrémentation de version, surveillance de fichier, code quelconque, etc.).
 
 
 
@@ -29,6 +29,10 @@ Jouer dans un Terminal (n’importe où) :
 ~~~
 
 … choisir "Nouvelle configuration de travail" et suivre la procédure.
+
+### Aide
+
+Pour obtenir de l’aide, on peut jouer `run manuel` ou `run open` puis choisir “Manuel” pour ouvrir ce manuel (ajouter l’option `-dev` pour ouvrir la version éditable qui peut être modifiée dans Typora.
 
 ---
 
@@ -159,6 +163,8 @@ Donc une étape optionnelle peut ressembler à :
 
 ### Tous le types d’étapes
 
+---
+
 #### Ouverture d’un fichier
 
 Pour ouvrir un fichier spécifique :
@@ -171,6 +177,23 @@ Pour ouvrir un fichier spécifique :
 		bounds: [top, left, width, height]
 ~~~
 
+> le `path` peut être une expression régulière (utile par exemple lorsque le fichier est versionné — penser alors à l’ouvrir *après* que la nouvelle version a été appliquée). Par exemple :
+>
+> ~~~yaml
+> ---
+> # ...
+> setup:
+> 	# ...
+> 	- description: "Ouverture d'un fichier par expression régulière"
+> 		type: open
+> 		opt: true # optionnellement
+> 		path: /v([0-9]+)\.([0-9]+)\.([0-9]+)\/BOOK.afpub/
+> ~~~
+>
+> 
+
+---
+
 #### Ouverture d’un dossier
 
 ~~~yaml
@@ -180,6 +203,8 @@ Pour ouvrir un fichier spécifique :
 		bounds: [top, left, width, height]
 		
 ~~~
+
+---
 
 #### Ouverture d’un dossier dans l’IDE
 
@@ -206,6 +231,8 @@ setup:
 		path: path/to/folder
 ~~~
 
+---
+
 #### Rejoindre une URL
 
 ~~~yaml
@@ -219,6 +246,22 @@ setup:
 		opt: true # pour en faire une étape optionnelle
 ~~~
 
+> Les arguments (`args`) peuvent aussi être fournis sous forme de vraie table :
+>
+> ~~~yaml
+> ---
+> # ...
+> setup:
+> 	- type: untype
+> 		# ...
+> 		args:
+> 			key1: valuekey1
+> 			key2: valuekey2
+> 			# etc.
+> ~~~
+
+---
+
 #### Jouer un script utilitaires
 
 Ce script doit se trouver dans le dossier `scripts` du dossier `Run` ou être spécifié par chemin d’accès complet. Il reçoit toujours les arguments définis par `:args` comme un json-string, donc comme une table avec des clés string. Si `args` n’est pas défini, il appelle le script sans argument.
@@ -227,7 +270,7 @@ Ce script doit se trouver dans le dossier `scripts` du dossier `Run` ou être sp
 :setup:
 	- type: script
 		path: mon_script
-		args: '{"key":"value", "key2":"value2",...}' # format JSON
+		args: '{"key":"value", "key2":"value2",...}' # format JSON ou Hash
 ~~~
 
 #### Jouer du code à la volée
@@ -239,7 +282,7 @@ Ce script doit se trouver dans le dossier `scripts` du dossier `Run` ou être sp
 		cmd: "puts('le code ruby à evaluer')"
 ~~~
 
-
+> Vous trouverez en annexe la [liste complète des script](#script-list)
 
 ---
 
@@ -262,6 +305,57 @@ La commande `run open`, en choisissant l’item “Ouvrir le dossier des travaux
 ---
 
 ## Annexe
+
+<a name="script-list"></a>
+
+### Liste complète des scripts
+
+#### Suivre un fichier avec `backup`
+
+Le script `backup` permet de suivre un fichier et d’en faire un backup de sécurité chaque fois qu’il est enregistré.
+
+> Ce script a été inauguré suite à la perte de plusieurs heures de travail avec la version 2 de Publisher, fortement instable (peut-être avec les anciens fichiers).
+
+Pour l’utiliser dans un set-up :
+
+~~~yaml
+---
+# ...
+folder: /path/to/mon/dossier
+setup: 
+	- type: script
+		path: 'backup'
+		args: 
+			file: /v([0-9]+)\.([0-9]+)\.([0-9]+)/BOOK\.afpub/
+		description: "suivre le fichier principal de développement"
+~~~
+
+La donnée la plus délicate, si elle doit varier, concerne l’argument à transmettre, qui doit spécifier le fichier à suivre. Ici, par exemple, il se trouve dans un dossier versionné.
+
+#### Upgrader la fichier d’un fichier
+
+Le script `upgrade_version` permet de faire monter le fichier/dossier spécifié à la version supérieure (tout en faisant une sauvegarde de la version courante.
+
+> La version doit obligatoirement avoir la forme x.y.z
+
+Pour l’utilliser dans le script dans un set-up :
+
+~~~yaml
+---
+# ...
+folder: /path/to/mon/dossier
+setup:
+	type: script
+	path: upgrade_version
+	args:
+		prefix: "v"
+		suffix: null
+	description: Pour passer à la version suivante.
+~~~
+
+> Noter que, ici, la donnée `format` doit absolument être un `String`. Dans le cas contraire, une exception sera levée.
+
+---
 
 ### Utilisation de Run avec MyTaches
 

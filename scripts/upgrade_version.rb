@@ -15,17 +15,19 @@ module Runner
 class Script
   attr_reader :folder
   def run(args, folder)
+
     @folder = folder
     # 
     # Un dossier backup doit exister
     # 
     File.exist?(backup_folder) || raise(StepError.new("Je ne trouve aucun dossier dont le nom comporte 'backup'… Je ne peux pas procéder au backup."))
-    
+    args[:format].nil?  || raise(StepError.new("Ce script n'attend plus d'argument :format, mais :prefix et/ou :suffix…"))
     # 
     # Le format qui doit permettre de reconnaitre le fichier/dossier
     # 
-    format_init     = args['format']
-    filename_format = Regexp.new(args['format'])
+    format_init     = "#{args[:prefix]}%s#{args[:suffix]}".strip.freeze
+    filename_format = Regexp.new(format_init % "([0-9]+)\.([0-9]+)\.([0-9]+)").freeze
+
     # 
     # Pour savoir si on a bien trouver quelque chose à updater
     # 
@@ -48,10 +50,7 @@ class Script
         end
 
         unless new_numbers.nil?
-          new_version = "#{format_init}" 
-          new_numbers.split('.').each do |v|
-            new_version = new_version.sub(/\(?\[0\-9\]\+\)?/, v)
-          end
+          new_version = format_init % new_numbers
           if new_version == format_init
             new_version = "v#{new_numbers}"
             puts "Je n'ai pas pu actualiser le numéro de version correctement. J'ai mis le nom standard #{new_version.inspect}".orange
@@ -107,6 +106,16 @@ class Script
         end
       end
       debug? && puts("backup_folder trouvé : #{bfolder.inspect}")
+      # 
+      # Si le dossier backup n'a pas été trouvé, il est créé
+      # 
+      if bfolder.nil?
+        bfolder = File.join(folder,'xbackup')
+        mkdir(bfolder)
+      end
+      # 
+      # On retourne le chemin d'accès au dossier backup
+      # 
       bfolder
     end
   end

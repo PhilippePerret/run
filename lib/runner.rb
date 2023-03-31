@@ -28,6 +28,8 @@ module Runner
       when 'unarchive', 'desarchive', 'desarchiver', 'désarchiver'
         require_relative 'archive'
         desarchiver
+      when 'manuel', 'manual'
+        open_something('manuel')
       when 'open', 'ouvre'              
         open_something(ARGV[1])
       else

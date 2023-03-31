@@ -9,7 +9,8 @@
     description: "Ouverture du dossier principal"
   - type: script
     path: 'upgrade_version'
-    args: '{"format": "v([0-9]+)\.([0-9]+)\.([0-9]+)"}'
+    args:
+      prefix: "v"
     description: "Changement de numéro de version du dossier."
   - type: open
     path: "../images"
