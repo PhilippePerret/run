@@ -161,6 +161,7 @@ class Step
       pth = data[:path]
       return pth if url?
       pth_ini = "#{pth}"
+      return pth if not(pth.start_with?('.')) && File.exist?(pth)
       if pth_ini.start_with?('/')
         # 
         # <= Le path est une expression régulière
@@ -174,7 +175,6 @@ class Step
         end
         raise StepError.new("Impossible de trouver le fichier/dossier avec #{pth_ini.inspect}.")
       end
-      return pth if not(pth.start_with?('.')) && File.exist?(pth)
       # pth = File.expand_path(pth, wconfig.default_folder)
       pth = File.expand_path(File.join(wconfig.default_folder, pth))
       return pth if File.exist?(pth)

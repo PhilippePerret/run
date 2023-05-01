@@ -73,8 +73,13 @@ module Runner
 
   def self.choose_travail
     choices = Dir["#{TRAVAUX_FOLDER}/*.yaml"].map do |pth|
-      {name: YAML.load_file(pth,**{symbolize_names:true})[:name], value: File.basename(pth, File.extname(pth))}
-    end + [{name: "Nouvelle configuration de travail".bleu, value: :new} ]
+      begin
+        {name: YAML.load_file(pth,**{symbolize_names:true})[:name], value: File.basename(pth, File.extname(pth))}
+      rescue Psych::SyntaxError => e
+        puts "Problème rencontré avec le fichier #{pth} : #{e.message}".rouge
+        nil
+      end
+    end.compact + [{name: "Nouvelle configuration de travail".bleu, value: :new} ]
 
     precedencize(choices, precedences_file) do |q|
       q.question "Choisissez le travail :"
