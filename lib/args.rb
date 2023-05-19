@@ -37,6 +37,10 @@ class Args
     data[key.to_s] || data[key.to_sym]
   end
 
+  def key?(key)
+    data.key?(key)
+  end
+
   def method_missing(methode, *args, &block)
     if self.data.key?(methode.to_s) || self.data.key?(methode.to_sym)
       self[methode]
@@ -50,7 +54,7 @@ class Args
     def eval_data
       @data.each do |k, v|
         case v
-        when /^\// then @data.merge!(k => eval(v))
+        when /^\/(.+)\/$/ then @data.merge!(k => eval(v))
         end
       end
     end

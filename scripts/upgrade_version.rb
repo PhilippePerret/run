@@ -1,15 +1,20 @@
 =begin
 
-  Script pour update la version d'un fichier ou d'un dossier
+  Script pour updater la version d'un fichier ou d'un dossier
 
   Dans une étape, mettre :
 
   :type: 'script'
   :path: 'upgrade_version'
-  :args: '{"format":"version_ou_autre([0-9]+)-([0-9]+)-([0-9]+)"'}
-  Ce sont particulièrement les "([0-9]+)" qui sont importants et
-  permettront de fixer le nom correctement.
-
+  :args: '{
+    "format":"version_ou_autre([0-9]+)-([0-9]+)-([0-9]+)"'
+    # Ce sont particulièrement les "([0-9]+)" qui sont importants et
+    # permettront de fixer le nom correctement.
+     
+    "backup_folder": "path/to/folder"
+    # Seulement si le dossier de backup ne se trouve pas au même
+    # niveau que le fichier lui-même.
+  }
 =end
 module Runner
 class Script
@@ -20,6 +25,7 @@ class Script
     # 
     # Un dossier backup doit exister
     # 
+    define_backup_folder(args)
     File.exist?(backup_folder) || raise(StepError.new("Je ne trouve aucun dossier dont le nom comporte 'backup'… Je ne peux pas procéder au backup."))
     args[:format].nil?  || raise(StepError.new("Ce script n'attend plus d'argument :format, mais :prefix et/ou :suffix…"))
     # 
@@ -96,28 +102,31 @@ class Script
   # (attention : le dossier des backups du dossier courant, pas 
   #  celui de l'application 'backup' qui surveille un fichier)
   def backup_folder
-    @backup_folder ||= begin
-      bfolder = nil
-      debug? && puts("backup_folder cherché dans #{folder.inspect}")
-      Dir["#{folder}/*"].each do |pth|
-        if File.directory?(pth) && File.basename(pth).downcase.match?(/backup/)
-          bfolder = pth
-          break
-        end
+    @backup_folder ||= define_backup_folder(nil)
+  end
+
+  def define_backup_folder(args)
+    @backup_folder = args[:backup_folder] and return if args && args.key?(:backup_folder)
+    bfolder = nil
+    debug? && puts("backup_folder cherché dans #{folder.inspect}")
+    Dir["#{folder}/*"].each do |pth|
+      if File.directory?(pth) && File.basename(pth).downcase.match?(/backup/)
+        bfolder = pth
+        break
       end
-      debug? && puts("backup_folder trouvé : #{bfolder.inspect}")
-      # 
-      # Si le dossier backup n'a pas été trouvé, il est créé
-      # 
-      if bfolder.nil?
-        bfolder = File.join(folder,'xbackup')
-        mkdir(bfolder)
-      end
-      # 
-      # On retourne le chemin d'accès au dossier backup
-      # 
-      bfolder
     end
+    debug? && puts("backup_folder trouvé : #{bfolder.inspect}")
+    # 
+    # Si le dossier backup n'a pas été trouvé, il est créé
+    # 
+    if bfolder.nil?
+      bfolder = File.join(folder,'xbackup')
+      mkdir(bfolder)
+    end
+    # 
+    # On retourne le chemin d'accès au dossier backup
+    # 
+    return bfolder
   end
 end
 end #/module Runner

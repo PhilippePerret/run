@@ -53,17 +53,19 @@ attr_reader :folder
     fld = File.dirname(src)
     if fld.match?(/~/)
       fld = fld.split("~").map do |el|
-        [el, {key:'n', modifiers:[:option]}, ' ']
+        # [el, {key:'n', modifiers:[:option]}, ' ']
+        [el, '\U+7E']
+        # [el, '__TILDE__']
       end.flatten
       2.times{fld.pop} # pour enlever les 2 derniers
       fld.unshift("cd \"")
       fld.push("\"")
-      puts "Nouveau fld : #{fld.inspect}" if debug?
       # return
     else
       fld = ["cd \"#{fld}\""]
     end
     # puts "(corrigé : #{fld.inspect})".gris
+    # exit
 
     # 
     # On se place dans le dossier et on lance la commande backup
@@ -71,13 +73,15 @@ attr_reader :folder
     # 
     run_in_terminal({key:'n', modifiers:[:command]}, **{delay:0.6})
     run_fast_in_terminal(fld << :RETURN)
-    run_in_terminal("backup \"#{File.basename(src)}\"\n")
+    run_in_terminal("backup \"#{src}\"\n")
   end
 
   def get_file_from_regexp(regpath, folder)
     Dir["#{folder}/**/*"].each do |pth|
+      next if pth.match?(/xbackups?/)
       return pth if pth.match?(regpath)
     end
+    exit
     return nil
   end
 

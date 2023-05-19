@@ -200,9 +200,13 @@ Pour ouvrir un fichier spécifique :
 :setup:
 	- type: open
 		path: path/to/folder # peut être relatif à :folder
-		bounds: [top, left, width, height]
+		bounds: [left, top, width, height]
 		
 ~~~
+
+Pour que les dossiers ne se chevauchent pas, additionner simplement le `top + height` ou le `left + width` pour obtenir respectivement le `top` et le `left` du dossier suivant.
+
+
 
 ---
 

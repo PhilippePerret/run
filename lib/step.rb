@@ -50,7 +50,7 @@ class Step
     raise InterruptionVolontaire.new
   rescue Exception => e
     puts "Une erreur est survenue : #{e.message}".rouge
-    puts e.backtrace.join("\n").rouge if debug?
+    puts e.backtrace.join("\n").rouge # if debug?
   end
 
   ##
