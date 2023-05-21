@@ -46,5 +46,15 @@ AIDE_MINI = <<-TEXT
     du travail à installer. S'il n'est pas fourni, c'est la liste
     des travaux archivés qui est fournie.
 
+OPTIONS
+*******
+
+  -h        Affiche l'aide
+
+  -c        "c" comme  "Choisir". Avec cette option, chaque étape
+            du run devient optionnelle, c'est-à-dire qu'on demande
+            avant chacune d'elle s'il faut l'exécuter. Permet de n'en
+            exécuter que quelques-unes.
+
 TEXT
 end #/module Runner
