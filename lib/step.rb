@@ -161,18 +161,18 @@ class Step
       pth = data[:path]
       return pth if url?
       pth_ini = "#{pth}"
+      #
+      # Chemin absolu existant
+      # (on s'en retourne tout de suite en le renvoyant)
+      # 
       return pth if not(pth.start_with?('.')) && File.exist?(pth)
-      if pth_ini.start_with?('/')
+      if pth_ini.match?(/^\/(.+)\/$/)
         # 
         # <= Le path est une expression régulière
         # => Il faut trouver l'élément dans le dossier
         # 
-        pth_ini = eval(pth_ini)
-        regpath = Regexp.new("^#{wconfig.default_folder}")
-        Dir["#{wconfig.default_folder}/**/*"].each do |fpath|
-          relpath = fpath.sub(regpath,'')
-          return fpath if relpath.match?(pth_ini)
-        end
+        fpath = search_file_in_folder(wconfig.default_folder, eval(pth_ini))
+        return fpath if fpath
         raise StepError.new("Impossible de trouver le fichier/dossier avec #{pth_ini.inspect}.")
       end
       # pth = File.expand_path(pth, wconfig.default_folder)
@@ -183,6 +183,41 @@ class Step
         return pth if File.exist?(pth)
       end
       raise StepError.new("Impossible de trouver le fichier/dossier #{pth.inspect}…")
+    end
+
+    ##
+    # Pour rechercher un fichier répondant à l'expression régulière
+    # +reg_path+ dans le dossier +dossier+
+    # (en fonctionnant de plus en plus profondément et pas avec un
+    # '**/*' qui obligerait à traiter les backups d'abord)
+    # 
+    # @param [String] dossier Chemin d'accès au dossier
+    # @param [Regexp] Expression régulière permettant d'identifier le fichier recherché
+    # 
+    # @return [String|Nil] Le chemin d'accès au fichier rechercher ou nil s'il n'a pas été trouvé
+    # 
+    def search_file_in_folder(dossier, reg_path)
+      # puts "Recherche dans le dossier #{dossier.inspect}".bleu
+      Dir["#{dossier}/*"].each do |fpath|
+        if File.directory?(fpath) && not(fpath.end_with?('.scriv'))
+          #
+          # Un dossier
+          # 
+          found = search_file_in_folder(fpath, reg_path)
+          return found if found # sinon poursuivre
+        else
+          #
+          # Un fichier
+          # 
+          relpath = fpath.sub(/^#{wconfig.default_folder}/,'')
+          if relpath.match?('backup') # ne jamais prendre un backup
+            # puts "Je ne prends jamais un backup (#{relpath})"
+            next
+          end
+          return fpath if relpath.match?(reg_path)
+        end
+      end
+      return nil
     end
 
     def open_folder
