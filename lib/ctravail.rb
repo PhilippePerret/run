@@ -6,11 +6,12 @@ class ConfigTravail
       wconfig_name = Q.ask("Nom de ce travail : ".jaune) || return
       wconfig_id   = wconfig_name.normalize.downcase.gsub(/( |::|:)/, '_')
       wconfig_id   = Q.ask("Son identifiant simple unique : ".jaune, **{default: wconfig_id})
+      folder_path  = Q.ask("Chemin d'accès à son dossier principal (optionne)".jaune)
       # 
       # On crée son fichier
       # 
       wconfig = new(wconfig_id)
-      wconfig.create(**{name: wconfig_name})
+      wconfig.create(**{'name' => wconfig_name}, 'folder' => folder_path)
       Runner.open_manual if Q.yes?("Dois-je ouvrir le manuel ?".jaune)
       # 
       # On ouvre toujours le fichier
@@ -106,7 +107,10 @@ class ConfigTravail
   end
 
   def create(new_data)
-    new_data.merge!(created_at: Time.now.strftime("%d/%m/%Y"), setup: [])
+    new_data.merge!(
+      'created_at' => Time.now.strftime("%d/%m/%Y"), 
+      'setup' => []
+    )
     @data = new_data.to_yaml
     save
   end
