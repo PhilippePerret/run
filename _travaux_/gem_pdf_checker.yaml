@@ -1,6 +1,6 @@
 ---
 :name: Gem PDF::Checker
-:folder: /Users/philippeperret/Programmes/Gems/pdf-checker
+:folder: "/Users/philippeperret/Programmes/Gems/pdf-checker"
 :created_at: 10/01/2023
 :setup:
   - type: open
