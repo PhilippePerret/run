@@ -66,7 +66,9 @@ class ConfigTravail
       #  optionnelles, peuvent être passées)
       #
       steps.reject do |step|
-        Q.no?("Dois-je jouer : #{step.aname} ? ('Y' pour oui)".jaune)
+        Q.no?("Dois-je jouer : #{step.aname} ? (’y’/'Y' pour oui)".jaune).tap do |value|
+          value || (step.runit = true)
+        end
       end.each(&:execute)
     else
       #

@@ -145,7 +145,11 @@ class Step
   def cmd         ; @cmd          ||= data[:cmd]              end
   def opt         ; @opt          ||= data[:opt]              end
   def app         ; @app          ||= data[:app]              end
-  def bounds      ; @bounds       ||= data[:bounds]           end
+  def bounds
+    @bounds ||= 
+      data[:bounds] && data[:bounds].map \
+        { |n| n.is_a?(String) ? eval(n) : n}    
+    end
   def description ; @description  ||= data[:description]      end
   def args        ; @args         ||= Args.new(data[:args])   end
   def path        ; @path         ||= get_real_path           end
